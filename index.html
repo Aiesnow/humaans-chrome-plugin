@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Humaans Chrome Plugin</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Poppins:wght@800&amp;display=swap">
+    <link rel="stylesheet" href="humaans.css">
+</head>
+<body>
+    <div id="settings" class="hidden">
+        <label for="setting-access-token">API Access token : </label><input type="password" id="setting-access-token" class="app-client-celeste-components-TextField-TextField--Input app-client-celeste-components-TextField-TextField--Input-textAlignLeft">
+        <label for="setting-nb-hours">Hours / day : </label><input type="number" value="8" id="setting-nb-hours" class="app-client-celeste-components-TextField-TextField--Input app-client-celeste-components-TextField-TextField--Input-textAlignLeft">
+        <label for="setting-carry-overtime">Carry overtime : </label><input type="checkbox" checked id="setting-carry-overtime">
+        <button id="close-settings" style="float: left" class="app-client-celeste-components-Button-Button--Button app-client-celeste-components-Button-Button--inverted">Back</button>
+        <button id="save-settings" style="float: right" class="app-client-celeste-components-Button-Button--Button app-client-celeste-components-Button-Button--primary">Save</button>
+    </div>
+    <div id="main" class="hidden">
+        <div id="profile">
+            <div class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfileButton">
+                <div role="button" tabindex="0" class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfileButtonInner">
+                    <div class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfilePhoto">
+                        <span role="img" class="app-client-celeste-components-Avatar-Avatar--Avatar app-client-celeste-components-Avatar-Avatar--styleOne app-client-celeste-components-Avatar-Avatar--sizeSmall-32 app-client-celeste-components-Avatar-Avatar--square app-client-celeste-components-Avatar-Avatar--hasImage">
+                            <img id="profile-image" class="app-client-celeste-components-Avatar-Avatar--Image" alt="" role="presentation" sizes="32px" width="32px" height="32px">
+                        </span>
+                    </div>
+                    <div class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfileDetails">
+                        <div class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--Name" id="profile-firstname"></div>
+                        <span class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfileJobTitle" id="profile-job-title"></span>
+                    </div>
+                </div>
+                <div class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfileDotsNoClick"></div>
+                <div>
+                    <div class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfileDotsContainer">
+                        <button class="app-client-components-Sidebar-components-ProfileButton-ProfileButton--ProfileDots" tabindex="0" aria-controls="Popover2" aria-owns="Popover2" aria-haspopup="true" aria-expanded="true" id="open-settings">
+                            <span class="app-client-celeste-components-Icon-Icon--Icon app-client-celeste-components-Icon-Icon--colorWhite">
+                                <svg viewBox="0 0 20 20" class="app-client-celeste-components-Icon-Icon--Svg" focusable="false" aria-hidden="true"><path d="M10 6c-1.103 0-2-.897-2-2s.897-2 2-2 2 .897 2 2-.897 2-2 2zm0 2c1.103 0 2 .897 2 2s-.897 2-2 2-2-.897-2-2 .897-2 2-2zm0 6c1.103 0 2 .897 2 2s-.897 2-2 2-2-.897-2-2 .897-2 2-2z"></path></svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="clock-buttons">
+
+            <button id="first-clock-in-button" class="app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--SidebarActionButton app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--hasIcon app-client-celeste-components-Button-Button--fullWidth">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4ZM2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12Z" fill="currentColor"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M12 6C12.5523 6 13 6.44772 13 7V12C13 12.2652 12.8946 12.5196 12.7071 12.7071L10.7071 14.7071C10.3166 15.0976 9.68342 15.0976 9.29289 14.7071C8.90237 14.3166 8.90237 13.6834 9.29289 13.2929L11 11.5858V7C11 6.44772 11.4477 6 12 6Z" fill="currentColor"></path></svg>
+                <span class="app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--Text">Clock in</span>
+                <span class="app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--ActionIcon">
+                    <span class="app-client-celeste-components-Icon-Icon--Icon app-client-celeste-components-Icon-Icon--sizeSmall">
+                        <svg viewBox="0 0 20 20" class="app-client-celeste-components-Icon-Icon--Svg" focusable="false" aria-hidden="true"><path d="M8 16a.999.999 0 0 1-.707-1.707l4.293-4.293-4.293-4.293a.999.999 0 1 1 1.414-1.414l5 5a.999.999 0 0 1 0 1.414l-5 5a.997.997 0 0 1-.707.293z"></path></svg>
+                    </span>
+                </span>
+            </button>
+
+            <button id="clock-in-button" class="hidden app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--SidebarActionButton app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--statusWarning app-client-celeste-components-Button-Button--fullWidth">
+                <span class="app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--Text">Clocked out at <span class="app-client-components-Sidebar-components-TimesheetButton-TimesheetButton--Time" id="clocked-out-at"></span></span>
+                <span class="app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--ActionIcon">
+                    <span class="app-client-celeste-components-Icon-Icon--Icon app-client-celeste-components-Icon-Icon--colorOrange app-client-celeste-components-Icon-Icon--isColored app-client-celeste-components-Icon-Icon--sizeSmall">
+                        <svg viewBox="0 0 20 20" class="app-client-celeste-components-Icon-Icon--Svg" focusable="false" aria-hidden="true"><path d="M8 16a.999.999 0 0 1-.707-1.707l4.293-4.293-4.293-4.293a.999.999 0 1 1 1.414-1.414l5 5a.999.999 0 0 1 0 1.414l-5 5a.997.997 0 0 1-.707.293z"></path></svg>
+                    </span>
+                </span>
+            </button>
+
+            <button id="clock-out-button" class="hidden app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--SidebarActionButton app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--statusInfo app-client-celeste-components-Button-Button--fullWidth">
+                <span class="app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--Text">Clocked in at <span class="app-client-components-Sidebar-components-TimesheetButton-TimesheetButton--Time" id="clocked-in-at"></span></span>
+                <span class="app-client-components-Sidebar-components-SidebarActionButton-SidebarActionButton--ActionIcon"><svg class="app-client-components-Sidebar-components-TimesheetButton-TimesheetButton--fadeIn" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor"></path><path d="M8 11.2C8 10.0799 8 9.51984 8.21799 9.09202C8.40973 8.71569 8.71569 8.40973 9.09202 8.21799C9.51984 8 10.0799 8 11.2 8H12.8C13.9201 8 14.4802 8 14.908 8.21799C15.2843 8.40973 15.5903 8.71569 15.782 9.09202C16 9.51984 16 10.0799 16 11.2V12.8C16 13.9201 16 14.4802 15.782 14.908C15.5903 15.2843 15.2843 15.5903 14.908 15.782C14.4802 16 13.9201 16 12.8 16H11.2C10.0799 16 9.51984 16 9.09202 15.782C8.71569 15.5903 8.40973 15.2843 8.21799 14.908C8 14.4802 8 13.9201 8 12.8V11.2Z" fill="currentColor"></path></svg></span>
+            </button>
+        </div>
+        <div id="recap">
+            Day : <span id="day-hours">Calculating...</span><br>
+            Week : <span id="week-hours">Calculating...</span><br>
+            Month : <span id="month-hours">Calculating...</span>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

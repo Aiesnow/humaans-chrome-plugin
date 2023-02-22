@@ -1,0 +1,18 @@
+{
+  "name": "Humaans Chrome Extension",
+  "version": "1.0.0",
+  "description": "Simple Humaans Chrome extension that allows you to Clock in & out",
+  "manifest_version": 3,
+  "author": "Hugo Martinez",
+  "action":{
+    "default_popup": "index.html",
+    "default_title": "Humaans Chrome Extension"
+  },
+  "host_permissions": [ "https://app.humaans.io/" ],
+  "permissions": [
+    "storage"
+  ],
+  "icons": {
+    "32": "icon.png"
+  }
+}
