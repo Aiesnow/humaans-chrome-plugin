@@ -302,7 +302,9 @@ function getNeededAndWorkedHours(start, end, timesheet, hoursWorkedForPeriod = 0
     let overtimeMinutes = minutesWorkedForPeriod;
     let hoursNeededForPeriod = 0;
     for (const day of daysBetween(start, end)) {
-        hoursNeededForPeriod += state.nbHours * hourRateForDay(day);
+        const nbHoursForDay = state.nbHours * hourRateForDay(day);
+        hoursNeededForPeriod += nbHoursForDay
+        console.log(`Hours needed for day ${getDate(day)} : ${nbHoursForDay}, Total : ${hoursNeededForPeriod}`);
     }
     for(const sheet of timesheet) {
         const now = new Date();
