@@ -39,7 +39,7 @@ async function initMainView(accessToken) {
     let clockedInTime = null;
     let clockedOutTime = null;
     todayTimeSheets.forEach(timesheet => {
-        if (timesheet.date === getDate(new Date())) {
+        if (timesheet.date === getDateAsString(new Date())) {
             if (!timesheet.endTime) {
                 openedTimesheetId = timesheet.id;
                 clockedInTime = timesheet.startTime;
@@ -54,8 +54,8 @@ async function initMainView(accessToken) {
 }
 
 async function computeWorkedHours(accessToken, user) {
-    const {start, end} = getMonthDates();
-    const yearStart = new Date(`${start.getFullYear()}-01-01`);
+    const { start, end } = getMonthDates();
+    const yearStart = new Date(start.getFullYear(), 0, 1);
 
     const timesheets = await fetchTimeSheet(accessToken, state.userId, yearStart, end);
 
@@ -86,15 +86,15 @@ async function computeWorkedHours(accessToken, user) {
 async function fetchHolidayCalendar(accessToken, calendarId, startDate, endDate) {
     const path = new URL('https://app.humaans.io/api/public-holidays');
     path.searchParams.set('publicHolidayCalendarId', calendarId);
-    path.searchParams.set('date[$gte]', startDate.toISOString().split('T')[0]);
-    path.searchParams.set('date[$lte]', endDate.toISOString().split('T')[0]);
+    path.searchParams.set('date[$gte]', getDateAsString(startDate));
+    path.searchParams.set('date[$lte]', getDateAsString(endDate));
     path.searchParams.set('$limit', '250');
-    const res=await fetch (path, {
+    const res = await fetch (path, {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         },
     });
-    const result=await res.json();
+    const result = await res.json();
     result.data.forEach(holiday => {
         state.holidays.add(holiday.date);
     });
@@ -102,14 +102,14 @@ async function fetchHolidayCalendar(accessToken, calendarId, startDate, endDate)
 
 async function fetchUser(accessToken) {
     const path = 'https://app.humaans.io/api/me';
-    const res=await fetch (path, {
+    const res = await fetch (path, {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         },
     });
-    const record=await res.json();
-    document.getElementById("profile-firstname").innerHTML=`${record.firstName} ${record.lastName}`;
-    document.getElementById("profile-image").src=record.profilePhoto.variants['64'];
+    const record = await res.json();
+    document.getElementById("profile-firstname").innerHTML = `${record.firstName} ${record.lastName}`;
+    document.getElementById("profile-image").src = record.profilePhoto.variants['64'];
     state.workingDays = record.workingDays.map(day => {
         const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         return days.indexOf(day.day);
@@ -117,34 +117,34 @@ async function fetchUser(accessToken) {
     return record;
 }
 
-async function fetchJobTitle(accessToken, personId=undefined) {
+async function fetchJobTitle(accessToken, personId = undefined) {
     let path = new URL('https://app.humaans.io/api/job-roles');
     if (personId) {
         path.searchParams.set('personId', personId);
     }
-    const res=await fetch (path.toString(), {
+    const res = await fetch (path.toString(), {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         },
     });
-    const record=await res.json();
-    document.getElementById("profile-job-title").innerHTML=record.data[0].jobTitle;
+    const record = await res.json();
+    document.getElementById("profile-job-title").innerHTML = record.data[0].jobTitle;
 }
 
 async function fetchTimeSheet(accessToken, personId, startDate, endDate, skip = 0) {
     const pageSize = 250;
     const path = new URL('https://app.humaans.io/api/timesheet-entries');
-    path.searchParams.set('date[$gte]', startDate.toISOString().split('T')[0]);
-    path.searchParams.set('date[$lte]', endDate.toISOString().split('T')[0]);
+    path.searchParams.set('date[$gte]', getDateAsString(startDate));
+    path.searchParams.set('date[$lte]', getDateAsString(endDate));
     path.searchParams.set('personId', personId);
     path.searchParams.set('$limit', pageSize.toString());
     path.searchParams.set('$skip', skip.toString());
-    const res=await fetch (path.toString(), {
+    const res = await fetch (path.toString(), {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         },
     });
-    const record=await res.json();
+    const record = await res.json();
 
     if (record.skip + record.data.length >= record.total) {
         return record.data;
@@ -160,31 +160,31 @@ async function fetchTimeSheet(accessToken, personId, startDate, endDate, skip = 
 async function fetchTodayTimeSheet(accessToken, personId) {
     const path = new URL('https://app.humaans.io/api/timesheet-entries');
     path.searchParams.set('personId', personId);
-    path.searchParams.set('date', getDate(new Date()));
-    const res=await fetch (path.toString(), {
+    path.searchParams.set('date', getDateAsString(new Date()));
+    const res = await fetch (path.toString(), {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         },
     });
-    const record=await res.json();
+    const record = await res.json();
 
     return record.data;
 }
 
 async function fetchTimeAway(accessToken, personId, startDate, endDate) {
     const path = new URL('https://app.humaans.io/api/time-away');
-    path.searchParams.set('startDate[$gte]', startDate.toISOString().split('T')[0]);
-    path.searchParams.set('startDate[$lte]', endDate.toISOString().split('T')[0]);
-    path.searchParams.set('$or.endDate[$gte]', startDate.toISOString().split('T')[0]);
-    path.searchParams.set('$or.endDate[$lte]', endDate.toISOString().split('T')[0]);
+    path.searchParams.set('startDate[$gte]', getDateAsString(startDate));
+    path.searchParams.set('startDate[$lte]', getDateAsString(endDate));
+    path.searchParams.set('$or.endDate[$gte]', getDateAsString(startDate));
+    path.searchParams.set('$or.endDate[$lte]', getDateAsString(endDate));
     path.searchParams.set('$limit', '250');
     path.searchParams.set('personId', personId);
-    const res=await fetch (path.toString(), {
+    const res = await fetch (path.toString(), {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         },
     });
-    const result=await res.json();
+    const result = await res.json();
     result.data.forEach(timeAway => {
         timeAway.breakdown.forEach(day => {
             state.timeAway.push(day.period === 'full' ? day.date : `${day.date}half`);
@@ -196,9 +196,9 @@ async function fetchTimeAway(accessToken, personId, startDate, endDate) {
 async function clockIn() {
     const path = 'https://app.humaans.io/api/timesheet-entries';
     const currentDate = new Date();
-    const date = getDate(currentDate);
-    const startTime = getTime(currentDate);
-    const res=await fetch (path, {
+    const date = getDateAsString(currentDate);
+    const startTime = getTimeAsString(currentDate);
+    const res = await fetch (path, {
         headers: {
             'Authorization': `Bearer ${state.accessToken}`,
             'Content-Type': 'application/json'
@@ -210,15 +210,15 @@ async function clockIn() {
             startTime,
         })
     });
-    const record=await res.json();
+    const record = await res.json();
     setClock(record.id, startTime, null);
     return record.id;
 }
 
 async function clockOut() {
     const path = `https://app.humaans.io/api/timesheet-entries/${state.currentActiveTimeSheet}`;
-    const endTime = getTime(new Date());
-    const res=await fetch (path, {
+    const endTime = getTimeAsString(new Date());
+    const res = await fetch (path, {
         headers: {
             'Authorization': `Bearer ${state.accessToken}`,
             'Content-Type': 'application/json'
@@ -228,7 +228,7 @@ async function clockOut() {
             endTime,
         })
     });
-    const record=await res.json();
+    const record = await res.json();
     setClock(null, null, endTime);
     return record.id;
 }
@@ -304,21 +304,21 @@ function getNeededAndWorkedHours(start, end, timesheet, hoursWorkedForPeriod = 0
     for (const day of daysBetween(start, end)) {
         const nbHoursForDay = state.nbHours * hourRateForDay(day);
         hoursNeededForPeriod += nbHoursForDay
-        console.log(`Hours needed for day ${getDate(day)} : ${nbHoursForDay}, Total : ${hoursNeededForPeriod}`);
+        console.log(`Hours needed for day ${getDateAsString(day)} : ${nbHoursForDay}, Total : ${hoursNeededForPeriod}`);
     }
     for(const sheet of timesheet) {
         const now = new Date();
-        if ((new Date(sheet.date) >= start && new Date(sheet.date) <= end) || start === end && getDate(start) === sheet.date) {
+        if ((getDate(sheet.date) >= start && getDate(sheet.date) <= end) || (start === end && getDateAsString(start) === sheet.date)) {
             if (sheet.duration) {
                 hoursWorkedForPeriod += sheet.duration?.hours || 0;
                 minutesWorkedForPeriod += sheet.duration?.minutes || 0;
-            } else if(!sheet.endTime && sheet.date === getDate(now)) {
-                const [startedHours, startedMinutes, startedSeconds] = sheet.startTime.split(':');
+            } else if(!sheet.endTime && sheet.date === getDateAsString(now)) {
+                const [startedHours, startedMinutes] = sheet.startTime.split(':');
                 let hoursWorked = now.getHours() - startedHours;
                 let minutesWorked = now.getMinutes() - startedMinutes;
                 if (minutesWorked < 0) {
                     hoursWorked--;
-                    minutesWorked+=60
+                    minutesWorked += 60
                 }
                 hoursWorkedForPeriod += hoursWorked;
                 minutesWorkedForPeriod += minutesWorked;
@@ -353,16 +353,16 @@ function formatNeededAndWorkedHours(result) {
 }
 
 function hourRateForDay(date) {
-    if (state.holidays.has(getDate(date))) {
+    if (state.holidays.has(getDateAsString(date))) {
         return 0; // Holiday
     }
     if (!state.workingDays.includes(date.getDay())) {
         return 0; // Weekend
     }
-    if (state.timeAway.includes(getDate(date))) {
+    if (state.timeAway.includes(getDateAsString(date))) {
         return 0; // Time away
     }
-    if (state.timeAway.includes(`${getDate(date)}half`)) {
+    if (state.timeAway.includes(`${getDateAsString(date)}half`)) {
         return date <= new Date() ? 0.5 : 0; // Time away half day
     }
     return date <= new Date() ? 1 : 0; // Only past & present days
@@ -374,7 +374,7 @@ function getWeekDates() {
     let daysToSubstract = day === 0 ? 6 : day - 1;
     let start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysToSubstract);
     let end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
-    return {start, end};
+    return { start, end };
 }
 
 function getMonthDates() {
@@ -397,10 +397,15 @@ function* daysBetween(startDate, endDate) {
 }
 
 function getDate(date) {
+    let [year, month, day] = date.split('-');
+    return new Date(year, month - 1, day);
+}
+
+function getDateAsString(date) {
     return `${date.getFullYear()}-${('0' + (date.getMonth()+1)).slice(-2)}-${('0' + date.getDate()).slice(-2)}`;
 }
 
-function getTime(date) {
+function getTimeAsString(date) {
     return `${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`
 }
 
