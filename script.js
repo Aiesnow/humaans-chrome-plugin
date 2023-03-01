@@ -413,11 +413,6 @@ function* daysBetween(startDate, endDate) {
     }
 }
 
-function getDate(date) {
-    let [year, month, day] = date.split('-');
-    return new Date(year, month - 1, day);
-}
-
 function getDateAsString(date) {
     return `${date.getFullYear()}-${('0' + (date.getMonth()+1)).slice(-2)}-${('0' + date.getDate()).slice(-2)}`;
 }
