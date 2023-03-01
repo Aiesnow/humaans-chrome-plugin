@@ -57,16 +57,18 @@ async function computeWorkedHours(accessToken, user) {
     const { start, end } = getMonthDates();
     const yearStart = new Date(start.getFullYear(), 0, 1);
 
-    const timesheets = await fetchTimeSheet(accessToken, state.userId, yearStart, end);
+    const timesheets = reduceTimesheetsByDay(await fetchTimeSheet(accessToken, state.userId, yearStart, end));
 
     state.holidays = new Set();
     state.timeAway = [];
-    await fetchTimeAway(accessToken, state.userId, start, end);
+    await fetchTimeAway(accessToken, state.userId, yearStart, end);
     await fetchHolidayCalendar(accessToken, user.remoteCountryCode, yearStart, end);
     if (user.remoteRegionCode) {
         await fetchHolidayCalendar(accessToken, `${user.remoteCountryCode}-${user.remoteRegionCode}`, yearStart, end);
     }
-    const yearlyOvertime = getOvertime(yearStart, start, timesheets); // Get overtime between start of the month & start of current week
+    const beforeMonth = new Date(start);
+    beforeMonth.setDate(beforeMonth.getDate() - 1);
+    const yearlyOvertime = getOvertime(yearStart, beforeMonth, timesheets); // Get overtime between start of the year & start of current month
     // Get month stats
     document.getElementById('month-hours').innerHTML = formatNeededAndWorkedHours(getNeededAndWorkedHours(start, end, timesheets, yearlyOvertime.overtimeHours, yearlyOvertime.overtimeMinutes));
     // Get Week stats
@@ -155,6 +157,16 @@ async function fetchTimeSheet(accessToken, personId, startDate, endDate, skip = 
             ...await fetchTimeSheet(accessToken, personId, startDate, endDate, skip + pageSize)
         ];
     }
+}
+
+function reduceTimesheetsByDay(timesheets) {
+    return timesheets.reduce((acc, sheet) => {
+        if (!acc[sheet.date]) {
+            acc[sheet.date] = [];
+        }
+        acc[sheet.date].push(sheet);
+        return acc;
+    }, {});
 }
 
 async function fetchTodayTimeSheet(accessToken, personId) {
@@ -287,8 +299,8 @@ function saveSettings() {
     });
 }
 
-function getOvertime(start, end, timesheet) {
-    let result = getNeededAndWorkedHours(start, end, timesheet);
+function getOvertime(start, end, timesheets) {
+    let result = getNeededAndWorkedHours(start, end, timesheets);
     const totalMinutes = result.hoursWorkedForPeriod * 60 + result.minutesWorkedForPeriod;
     const overtimeMinutes = totalMinutes - result.hoursNeededForPeriod * 60;
     return {
@@ -297,32 +309,37 @@ function getOvertime(start, end, timesheet) {
     }
 }
 
-function getNeededAndWorkedHours(start, end, timesheet, hoursWorkedForPeriod = 0, minutesWorkedForPeriod = 0) {
+function getNeededAndWorkedHours(start, end, timesheets, hoursWorkedForPeriod = 0, minutesWorkedForPeriod = 0) {
     let overtimeHours = hoursWorkedForPeriod;
     let overtimeMinutes = minutesWorkedForPeriod;
     let hoursNeededForPeriod = 0;
+
     for (const day of daysBetween(start, end)) {
         const nbHoursForDay = state.nbHours * hourRateForDay(day);
         hoursNeededForPeriod += nbHoursForDay
-        console.log(`Hours needed for day ${getDateAsString(day)} : ${nbHoursForDay}, Total : ${hoursNeededForPeriod}`);
-    }
-    for(const sheet of timesheet) {
-        const now = new Date();
-        if ((getDate(sheet.date) >= start && getDate(sheet.date) <= end) || (start === end && getDateAsString(start) === sheet.date)) {
-            if (sheet.duration) {
-                hoursWorkedForPeriod += sheet.duration?.hours || 0;
-                minutesWorkedForPeriod += sheet.duration?.minutes || 0;
-            } else if(!sheet.endTime && sheet.date === getDateAsString(now)) {
-                const [startedHours, startedMinutes] = sheet.startTime.split(':');
-                let hoursWorked = now.getHours() - startedHours;
-                let minutesWorked = now.getMinutes() - startedMinutes;
-                if (minutesWorked < 0) {
-                    hoursWorked--;
-                    minutesWorked += 60
+
+        let hoursWorkedForDay = 0;
+        let minutesWorkedForDay = 0;
+        if (timesheets[getDateAsString(day)]) {
+            const sheets = timesheets[getDateAsString(day)];
+            for (const sheet of sheets) {
+                if (sheet.duration) {
+                    hoursWorkedForDay += sheet.duration.hours || 0;
+                    minutesWorkedForDay += sheet.duration.minutes || 0;
+                } else if (!sheet.endTime) {
+                    const [startedHours, startedMinutes] = sheet.startTime.split(':');
+                    let hoursWorked = new Date().getHours() - startedHours;
+                    let minutesWorked = new Date().getMinutes() - startedMinutes;
+                    if (minutesWorked < 0) {
+                        hoursWorked--;
+                        minutesWorked += 60
+                    }
+                    hoursWorkedForDay += hoursWorked;
+                    minutesWorkedForDay += minutesWorked;
                 }
-                hoursWorkedForPeriod += hoursWorked;
-                minutesWorkedForPeriod += minutesWorked;
             }
+            hoursWorkedForPeriod += hoursWorkedForDay;
+            minutesWorkedForPeriod += minutesWorkedForDay;
         }
     }
     hoursWorkedForPeriod += Math.floor(Math.abs(minutesWorkedForPeriod) / 60);
@@ -379,11 +396,11 @@ function getWeekDates() {
 
 function getMonthDates() {
     // Get today's date
-    var today = new Date();
+    const today = new Date();
     // Get the start of the month
-    var start = new Date(today.getFullYear(), today.getMonth(), 1);
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
     // Get the end of the month
-    var end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     // Return the start and end dates as an object
     return { start: start, end: end };
 }
