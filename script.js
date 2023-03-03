@@ -344,6 +344,12 @@ function getNeededAndWorkedHours(start, end, timesheets, hoursWorkedForPeriod = 
     }
     hoursWorkedForPeriod += Math.floor(Math.abs(minutesWorkedForPeriod) / 60);
     minutesWorkedForPeriod = minutesWorkedForPeriod % 60;
+
+    if (hoursWorkedForPeriod > 0 && minutesWorkedForPeriod < 0) {
+        hoursWorkedForPeriod--;
+        minutesWorkedForPeriod += 60;
+    }
+
     const percentWorked = (hoursWorkedForPeriod + minutesWorkedForPeriod / 60) / hoursNeededForPeriod * 100;
     return {
         hoursWorkedForPeriod,
