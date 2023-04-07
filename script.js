@@ -34,7 +34,13 @@ async function initMainView(accessToken) {
     await chrome.storage.local.set({ userId: user.id });
     state.userId = user.id
     await fetchJobTitle(accessToken, state.userId);
-    const todayTimeSheets = await fetchTodayTimeSheet(accessToken, state.userId);
+    await computeTodayTimeSheet(accessToken, state.userId);
+
+    void computeWorkedHours(accessToken, user);
+}
+
+async function computeTodayTimeSheet(accessToken, userId) {
+    const todayTimeSheets = await fetchTodayTimeSheet(accessToken, userId);
     let openedTimesheetId = null;
     let clockedInTime = null;
     let clockedOutTime = null;
@@ -49,8 +55,6 @@ async function initMainView(accessToken) {
         }
     });
     setClock(openedTimesheetId, clockedInTime, clockedOutTime);
-
-    void computeWorkedHours(accessToken, user);
 }
 
 async function computeWorkedHours(accessToken, user) {
@@ -66,9 +70,7 @@ async function computeWorkedHours(accessToken, user) {
     if (user.remoteRegionCode) {
         await fetchHolidayCalendar(accessToken, `${user.remoteCountryCode}-${user.remoteRegionCode}`, yearStart, end);
     }
-    const beforeMonth = new Date(start);
-    beforeMonth.setDate(beforeMonth.getDate() - 1);
-    const yearlyOvertime = getOvertime(yearStart, beforeMonth, timesheets); // Get overtime between start of the year & start of current month
+    const yearlyOvertime = getOvertime(yearStart, start, timesheets); // Get overtime between start of the year & start of current month
     // Get month stats
     document.getElementById('month-hours').innerHTML = formatNeededAndWorkedHours(getNeededAndWorkedHours(start, end, timesheets, yearlyOvertime.overtimeHours, yearlyOvertime.overtimeMinutes));
     // Get Week stats
@@ -406,7 +408,7 @@ function getMonthDates() {
     // Get the start of the month
     const start = new Date(today.getFullYear(), today.getMonth(), 1);
     // Get the end of the month
-    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     // Return the start and end dates as an object
     return { start: start, end: end };
 }
